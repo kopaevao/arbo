@@ -608,6 +608,7 @@ function renderPhotoPreview() {
 }
 
 function saveObj() {
+  console.log('saveObj вызван');
   const client = document.getElementById('f-client').value.trim();
   if (!client) { alert('Введите клиента'); return; }
 
@@ -637,7 +638,9 @@ function saveObj() {
   obj.profitPercent = obj.cost>0 ? Math.round((obj.profit/obj.cost)*100) : 0;
   obj.profitPerHour = obj.hours>0 ? Math.round(obj.profit/obj.hours) : 0;
 
+  // Сначала отправляем фото, потом объект
   if (selectedFiles.length > 0) {
+    console.log('Начинаем отправку фото, файлов:', selectedFiles.length);
     const files = selectedFiles.map(file => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -655,6 +658,7 @@ function saveObj() {
     });
 
     Promise.all(files).then(fileData => {
+      console.log('Фото считаны, отправляем...');
       const formData = new FormData();
       formData.append('action', 'uploadPhotos');
       formData.append('files', JSON.stringify(fileData));
@@ -665,21 +669,25 @@ function saveObj() {
       })
       .then(r => r.json())
       .then(data => {
+        console.log('Ответ от uploadPhotos:', data);
         if (data.urls) {
           obj.photoUrls = data.urls.join(', ');
         }
         sendObjToSheet(obj);
       })
-      .catch(() => {
+      .catch(err => {
+        console.error('Ошибка при загрузке фото:', err);
         sendObjToSheet(obj);
       });
     });
   } else {
+    console.log('Фото не выбраны, отправляем только объект');
     sendObjToSheet(obj);
   }
 }
 
 function sendObjToSheet(obj) {
+  console.log('Отправляем объект в таблицу:', obj);
   fetch(SHEET_URL, {
     method: 'POST',
     body: JSON.stringify(obj)
