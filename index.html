@@ -131,14 +131,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;backgr
   <select id="f-pricing"><option>Попали в цену</option><option>Дороже на 5 000</option><option>Дороже на 10 000</option><option>Дешевле</option></select>
   <label>Комментарий</label>
   <textarea id="f-comment"></textarea>
-
-  <div class="section-title">📷 Фото объекта (можно добавлять по одному)</div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;">
-    <input id="f-files" type="file" accept="image/*" onchange="addPhotos(this)">
-    <button class="btn btn-grey" style="padding:8px 16px;font-size:13px;width:auto;" onclick="clearPhotos()">🗑 Очистить</button>
-  </div>
+  <div class="section-title">📷 Фото объекта (можно несколько)</div>
+  <input id="f-files" type="file" accept="image/*" multiple onchange="previewPhotos(this)">
   <div id="photo-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
-
   <button class="btn btn-green" onclick="saveObj()">💾 Сохранить</button>
   <button class="btn btn-grey" onclick="clearForm()">🗑 Очистить</button>
   <div id="msg-ok" class="msg msg-ok">✅ Сохранено!</div>
@@ -224,11 +219,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;backgr
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwLTYuaoSMv1Bh3sYspSYNSTQkRLqVJHWyG7Oi0BbMWs4WjYQe2Vo7_RM_KybHMzVQyCA/exec"; // Твой URL
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbz5u3rtC0U2azkq_44wRixJAmVNah34hGfMmUEykpCAN-p5TnIyPSaIJhPQUqLLn29ToA/exec";
 let objs = [];
 let calcTrees = [];
 let formTrees = [];
-let selectedFiles = [];
 
 const TREE_TYPES = ['Берёза','Липа','Туя','Сосна','Ель','Дуб','Клён','Ясень','Тополь','Ива','Осина','Вяз','Черёмуха','Рябина','Яблоня','Груша','Слива','Вишня','Лиственница','Пихта','Другое'];
 const WORK_TYPES = ['Полный спил','Спил до живых веток','Обрезка сухих ветвей','Частичная обрезка','Валка с оттяжками'];
@@ -547,63 +541,26 @@ function saveCalcToSheet() {
     });
 }
 
-// ===== СОХРАНЕНИЕ ОБЪЕКТА С ФОТО =====
-function addPhotos(input) {
-  if (input.files && input.files.length > 0) {
-    for (let i = 0; i < input.files.length; i++) {
-      selectedFiles.push(input.files[i]);
-    }
-    renderPhotoPreview();
-  }
-  input.value = ''; // сбрасываем, чтобы можно было снова выбрать те же файлы
-}
-
-function clearPhotos() {
-  selectedFiles = [];
-  renderPhotoPreview();
-  document.getElementById('f-files').value = '';
-}
-
-function renderPhotoPreview() {
+// ===== СОХРАНЕНИЕ ОБЪЕКТА =====
+function previewPhotos(input) {
   const container = document.getElementById('photo-preview');
   container.innerHTML = '';
-  selectedFiles.forEach((file, index) => {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      img.style.width = '80px';
-      img.style.height = '80px';
-      img.style.objectFit = 'cover';
-      img.style.borderRadius = '8px';
-      img.style.margin = '4px';
-      // кнопка удаления
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'relative';
-      wrapper.style.display = 'inline-block';
-      const del = document.createElement('button');
-      del.textContent = '✕';
-      del.style.position = 'absolute';
-      del.style.top = '-5px';
-      del.style.right = '-5px';
-      del.style.background = '#e74c3c';
-      del.style.color = '#fff';
-      del.style.border = 'none';
-      del.style.borderRadius = '50%';
-      del.style.width = '20px';
-      del.style.height = '20px';
-      del.style.fontSize = '12px';
-      del.style.cursor = 'pointer';
-      del.onclick = function() {
-        selectedFiles.splice(index, 1);
-        renderPhotoPreview();
+  if (input.files) {
+    for (let i = 0; i < input.files.length; i++) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.width = '80px';
+        img.style.height = '80px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '8px';
+        img.style.margin = '4px';
+        container.appendChild(img);
       };
-      wrapper.appendChild(img);
-      wrapper.appendChild(del);
-      container.appendChild(wrapper);
-    };
-    reader.readAsDataURL(file);
-  });
+      reader.readAsDataURL(input.files[i]);
+    }
+  }
 }
 
 function saveObj() {
@@ -637,43 +594,43 @@ function saveObj() {
   obj.profitPercent = obj.cost>0 ? Math.round((obj.profit/obj.cost)*100) : 0;
   obj.profitPerHour = obj.hours>0 ? Math.round(obj.profit/obj.hours) : 0;
 
-  if (selectedFiles.length > 0) {
-    const files = selectedFiles.map(file => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const base64 = e.target.result.split(',')[1];
-          resolve({
-            name: file.name,
-            mimeType: file.type,
-            base64: base64
+  const fileInput = document.getElementById('f-files');
+  if (fileInput.files && fileInput.files.length > 0) {
+    const files = [];
+    let loaded = 0;
+    for (let i = 0; i < fileInput.files.length; i++) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result.split(',')[1];
+        files.push({
+          name: fileInput.files[i].name,
+          mimeType: fileInput.files[i].type,
+          base64: base64
+        });
+        loaded++;
+        if (loaded === fileInput.files.length) {
+          // Все файлы загружены, отправляем
+          const formData = new FormData();
+          formData.append('action', 'uploadPhotos');
+          formData.append('files', JSON.stringify(files));
+          fetch(SHEET_URL, {
+            method: 'POST',
+            body: formData
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.urls) {
+              obj.photoUrls = data.urls.join(', ');
+            }
+            sendObjToSheet(obj);
+          })
+          .catch(() => {
+            sendObjToSheet(obj);
           });
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    });
-
-    Promise.all(files).then(fileData => {
-      const formData = new FormData();
-      formData.append('action', 'uploadPhotos');
-      formData.append('files', JSON.stringify(fileData));
-
-      fetch(SHEET_URL, {
-        method: 'POST',
-        body: formData
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.urls) {
-          obj.photoUrls = data.urls.join(', ');
         }
-        sendObjToSheet(obj);
-      })
-      .catch(() => {
-        sendObjToSheet(obj);
-      });
-    });
+      };
+      reader.readAsDataURL(fileInput.files[i]);
+    }
   } else {
     sendObjToSheet(obj);
   }
@@ -704,9 +661,8 @@ function sendObjToSheet(obj) {
 function clearForm() {
   ['f-client','f-phone','f-address','f-cost','f-hours','f-nizovoy','f-expenses','f-lift','f-comment','edit-id','f-custom'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);
-  document.getElementById('f-files').value = '';
-  document.getElementById('photo-preview').innerHTML = '';
-  selectedFiles = [];
+  document.getElementById('f-files').value='';
+  document.getElementById('photo-preview').innerHTML='';
   formTrees = [];
   renderFormTrees();
 }
@@ -722,13 +678,18 @@ function renderList() {
     let trees=[]; try{trees=JSON.parse(o.trees||'[]');}catch(e){}
     const treeSummary = trees.length ? trees.map(t=>t.type+(t.count>1?' ('+t.count+' шт.)':'')).join(', ') : '—';
     const displayCost = o.custom && o.custom > 0 ? o.custom : (o.cost || 0);
+    let photosHtml = '';
+    if (o.photoUrls) {
+      const urls = o.photoUrls.split(', ');
+      photosHtml = urls.map(url => `<a href="${url}" target="_blank"><img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin:4px;"></a>`).join('');
+    }
     return `<div class="card">
       <h3>${o.client}</h3>
       <p>📞 ${o.phone||'—'} | 📍 ${o.address||'—'}</p>
       <p>🌳 ${treeSummary}</p>
       <p>⏱ ${o.hours||0} ч | ${o.pricing||'—'}</p>
       ${o.comment?'<p>💬 '+o.comment+'</p>':''}
-      ${o.photoUrls ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">${o.photoUrls.split(', ').map(url => `<a href="${url}" target="_blank"><img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;"></a>`).join('')}</div>` : ''}
+      ${photosHtml ? '<div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0;">'+photosHtml+'</div>' : ''}
       <div class="cost">💰 ${displayCost.toLocaleString('ru-RU')} ₽${o.paid==='Нет'?' <span style="color:#e74c3c;font-weight:600">Не оплачено</span>':''}
       ${o.custom && o.custom > 0 ? ` <span style="font-size:12px;color:#888">(расч. ${(o.cost||0).toLocaleString('ru-RU')} ₽)</span>` : ''}</div>
       <p style="font-size:13px">Прибыль: <b>${(o.profit||0).toLocaleString('ru-RU')} ₽</b> (${o.profitPercent||0}%) | ${(o.profitPerHour||0).toLocaleString('ru-RU')} ₽/ч</p>
@@ -891,8 +852,8 @@ function updateStats() {
 // ===== ЭКСПОРТ CSV =====
 function exportCSV() {
   if(!objs.length){alert('Нет объектов');return;}
-  const rows=[['Клиент','Телефон','Адрес','Стоимость','Прибыль','Часы','Фото']];
-  objs.forEach(o=>rows.push([o.client,o.phone,o.address,o.cost,o.profit,o.hours,o.photoUrls||'']));
+  const rows=[['Клиент','Телефон','Адрес','Стоимость','Прибыль','Часы']];
+  objs.forEach(o=>rows.push([o.client,o.phone,o.address,o.cost,o.profit,o.hours]));
   const csv=rows.map(r=>r.join(';')).join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
