@@ -672,13 +672,14 @@ function saveObj() {
         body: JSON.stringify({ action: 'uploadPhotos', files: fileData })
       })
       .then(r => r.text())
-      .then(text => { try { return JSON.parse(text); } catch(e) { return {}; } })
-      .then(data => data)
-      .then(r => r)
-      .then(data => {
-        console.log('Ответ от uploadPhotos:', data);
-        if (data.urls) {
-          obj.photoUrls = data.urls.join(', ');
+      .then(text => {
+        try {
+          const data = JSON.parse(text);
+          if (data.urls) {
+            obj.photoUrls = data.urls.join(', ');
+          }
+        } catch(e) {
+          console.warn('Фото: не удалось разобрать ответ');
         }
         sendObjToSheet(obj);
       })
