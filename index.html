@@ -224,7 +224,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;backgr
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbxEjCVPeGuNsPQESX6gQ1ZbE84XOGmVZdlixkA_gUoIcPhhZSak8p2ANLMvt8AgU2cXLA/exec"; // Твой новый URL
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwRWhjdEWi2ze21j7-277sSsFVlsTnOLRWOrhnQ9_YHYtIs4JKEC96HjlMSK7HmhFyVpA/exec";
 let objs = [];
 let calcTrees = [];
 let formTrees = [];
@@ -549,13 +549,14 @@ function saveCalcToSheet() {
 
 // ===== СОХРАНЕНИЕ ОБЪЕКТА С ФОТО =====
 function addPhotos(input) {
+  console.log('addPhotos вызван');
   if (input.files && input.files.length > 0) {
     for (let i = 0; i < input.files.length; i++) {
       selectedFiles.push(input.files[i]);
     }
     renderPhotoPreview();
   }
-  input.value = ''; // сбрасываем, чтобы можно было снова выбрать те же файлы
+  input.value = '';
 }
 
 function clearPhotos() {
