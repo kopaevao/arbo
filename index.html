@@ -88,6 +88,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;backgr
 <!-- ФОРМА -->
 <div id="tab-add" class="tab-content">
 <div class="form-card">
+  <input type="hidden" id="edit-id">
   <div class="section-title">👤 Клиент</div>
   <label>Клиент</label>
   <input id="f-client" placeholder="Имя клиента">
@@ -105,6 +106,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;backgr
   <div class="section-title">💰 Финансы</div>
   <label>Общая стоимость (₽)</label>
   <input id="f-cost" type="number">
+  <label>Своя сумма (если отличается) (₽)</label>
+  <input id="f-custom" type="number" placeholder="оставьте пустым">
   <label>Низовой (₽)</label>
   <input id="f-nizovoy" type="number">
   <label>Аренда вышки (₽)</label>
@@ -221,7 +224,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;backgr
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwtEeBRlPHyqz6jmxBIybzmIXCW3-8UxQ4O5gea0eXeOvG3P-2voc7Zt1cBi9Yrd1sCdg/exec"; // ВСТАВЬ СВОЙ URL
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxEjCVPeGuNsPQESX6gQ1ZbE84XOGmVZdlixkA_gUoIcPhhZSak8p2ANLMvt8AgU2cXLA/exec"; // Твой новый URL
 let objs = [];
 let calcTrees = [];
 let formTrees = [];
@@ -616,6 +619,7 @@ function saveObj() {
     reason: document.getElementById('f-reason').value,
     trees: JSON.stringify(formTrees),
     cost: parseInt(document.getElementById('f-cost').value) || 0,
+    custom: parseInt(document.getElementById('f-custom').value) || 0,
     nizovoy: parseInt(document.getElementById('f-nizovoy').value) || 0,
     expenses: parseInt(document.getElementById('f-expenses').value) || 0,
     lift: parseInt(document.getElementById('f-lift').value) || 0,
@@ -697,7 +701,7 @@ function sendObjToSheet(obj) {
 }
 
 function clearForm() {
-  ['f-client','f-phone','f-address','f-cost','f-hours','f-nizovoy','f-expenses','f-lift','f-comment','edit-id'].forEach(id=>document.getElementById(id).value='');
+  ['f-client','f-phone','f-address','f-cost','f-hours','f-nizovoy','f-expenses','f-lift','f-comment','edit-id','f-custom'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);
   document.getElementById('f-files').value = '';
   document.getElementById('photo-preview').innerHTML = '';
@@ -716,7 +720,7 @@ function renderList() {
   el.innerHTML=[...objs].reverse().map(o=>{
     let trees=[]; try{trees=JSON.parse(o.trees||'[]');}catch(e){}
     const treeSummary = trees.length ? trees.map(t=>t.type+(t.count>1?' ('+t.count+' шт.)':'')).join(', ') : '—';
-    const displayCost = o.cost || 0;
+    const displayCost = o.custom && o.custom > 0 ? o.custom : (o.cost || 0);
     return `<div class="card">
       <h3>${o.client}</h3>
       <p>📞 ${o.phone||'—'} | 📍 ${o.address||'—'}</p>
@@ -724,7 +728,8 @@ function renderList() {
       <p>⏱ ${o.hours||0} ч | ${o.pricing||'—'}</p>
       ${o.comment?'<p>💬 '+o.comment+'</p>':''}
       ${o.photoUrls ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">${o.photoUrls.split(', ').map(url => `<a href="${url}" target="_blank"><img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;"></a>`).join('')}</div>` : ''}
-      <div class="cost">💰 ${displayCost.toLocaleString('ru-RU')} ₽${o.paid==='Нет'?' <span style="color:#e74c3c;font-weight:600">Не оплачено</span>':''}</div>
+      <div class="cost">💰 ${displayCost.toLocaleString('ru-RU')} ₽${o.paid==='Нет'?' <span style="color:#e74c3c;font-weight:600">Не оплачено</span>':''}
+      ${o.custom && o.custom > 0 ? ` <span style="font-size:12px;color:#888">(расч. ${(o.cost||0).toLocaleString('ru-RU')} ₽)</span>` : ''}</div>
       <p style="font-size:13px">Прибыль: <b>${(o.profit||0).toLocaleString('ru-RU')} ₽</b> (${o.profitPercent||0}%) | ${(o.profitPerHour||0).toLocaleString('ru-RU')} ₽/ч</p>
       <div class="card-actions">
         <button class="btn-edit" onclick="editObj(${o.id})">✏️</button>
@@ -742,6 +747,7 @@ function editObj(id) {
   document.getElementById('f-phone').value=o.phone||'';
   document.getElementById('f-address').value=o.address||'';
   document.getElementById('f-cost').value=o.cost||'';
+  document.getElementById('f-custom').value=o.custom||'';
   document.getElementById('f-hours').value=o.hours||'';
   document.getElementById('f-nizovoy').value=o.nizovoy||'';
   document.getElementById('f-expenses').value=o.expenses||'';
@@ -858,8 +864,8 @@ function downloadTxt(content, filename) {
 // ===== СТАТИСТИКА =====
 function updateStats() {
   const n=objs.length;
-  const sum = objs.reduce((a,o)=>a+(o.cost||0),0);
-  const profit = objs.reduce((a,o)=>a+(o.profit||0),0);
+  const sum = objs.reduce((a,o)=>a+( (o.custom && o.custom>0) ? o.custom : (o.cost||0) ), 0);
+  const profit = objs.reduce((a,o)=>a+( (o.custom && o.custom>0) ? (o.custom - o.nizovoy - o.lift - o.expenses) : (o.profit||0) ), 0);
   const hrs=objs.reduce((a,o)=>a+(o.hours||0),0);
   document.getElementById('s-count').textContent=n;
   document.getElementById('s-sum').textContent=sum.toLocaleString('ru-RU')+' ₽';
