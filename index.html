@@ -235,8 +235,16 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;backgr
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbxXBVOi3olVgL_g8LA4QbMWZ2PcfhNBDbXclT9OpWMlfcCiLu04_HczKotlFWMQoCMDDw/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxEuW6gh8UEN5yzha3UZw2EhqI3FESWhpzkII84WC0YBDvDK84NFG1XGBJkketq0RLZWQ/exec";
 let objs = [];
+// Очистка старых ключей localStorage
+['arbozavr','arbozavr6','arbozavr_old'].forEach(k=>{
+  if(localStorage.getItem(k)) {
+    const old = localStorage.getItem(k);
+    if(!localStorage.getItem('arbozavr7')) localStorage.setItem('arbozavr7', old);
+    localStorage.removeItem(k);
+  }
+});
 let calcTrees = [];
 let formTrees = [];
 let selectedFiles = [];
@@ -728,7 +736,59 @@ function clearForm() {
 }
 
 function save(){localStorage.setItem('arbozavr7',JSON.stringify(objs));}
-function load(){try{const d=localStorage.getItem('arbozavr7');if(d)objs=JSON.parse(d);}catch(e){}renderList();renderFormTrees();}
+function load(){
+  // Сначала показываем из localStorage
+  try{const d=localStorage.getItem('arbozavr7');if(d)objs=JSON.parse(d);}catch(e){}
+  renderList();
+  renderFormTrees();
+  // Затем загружаем актуальные данные из Google Таблицы
+  loadFromSheet();
+}
+
+function loadFromSheet(){
+  const el = document.getElementById('obj-list');
+  if(el) el.insertAdjacentHTML('afterbegin','<div id="sync-msg" style="text-align:center;padding:8px;font-size:13px;color:#2d8c2d">🔄 Синхронизация...</div>');
+  fetch(SHEET_URL)
+  .then(r=>r.json())
+  .then(data=>{
+    if(Array.isArray(data) && data.length>0){
+      objs = data.map((row,i)=>({
+        id: row['ID'] || row['id'] || (Date.now()+i),
+        date: row['Дата']||'',
+        client: row['Клиент']||'',
+        phone: row['Телефон']||'',
+        address: row['Адрес']||'',
+        source: row['Источник']||'',
+        reason: row['Причина']||'',
+        trees: row['Деревья (JSON)']||'[]',
+        cost: parseFloat(row['Стоимость'])||0,
+        nizovoy: parseFloat(row['Низовой'])||0,
+        lift: parseFloat(row['Аренда вышки'])||0,
+        expenses: parseFloat(row['Прочие расходы'])||0,
+        profit: parseFloat(row['Прибыль'])||0,
+        profitPercent: parseFloat(row['Рентабельность'])||0,
+        profitPerHour: parseFloat(row['₽/ч'])||0,
+        paid: row['Оплачено']||'',
+        hours: parseFloat(row['Часы'])||0,
+        review: row['Отзыв']||'',
+        avito: row['Авито']||'',
+        tg: row['Telegram']||'',
+        pricing: row['Оценка']||'',
+        comment: row['Комментарий']||'',
+        photoUrls: row['Фото (ссылки)']||''
+      }));
+      save();
+      renderList();
+    }
+    const msg=document.getElementById('sync-msg');
+    if(msg)msg.remove();
+  })
+  .catch(err=>{
+    console.warn('Не удалось загрузить из таблицы:', err);
+    const msg=document.getElementById('sync-msg');
+    if(msg)msg.remove();
+  });
+}
 
 // ===== СПИСОК =====
 function renderList() {
@@ -761,8 +821,8 @@ function renderList() {
       ${o.custom && o.custom > 0 ? ` <span style="font-size:12px;color:#888">(расч. ${(o.cost||0).toLocaleString('ru-RU')} ₽)</span>` : ''}</div>
       <p style="font-size:13px">Прибыль: <b>${(o.profit||0).toLocaleString('ru-RU')} ₽</b> (${o.profitPercent||0}%) | ${(o.profitPerHour||0).toLocaleString('ru-RU')} ₽/ч</p>
       <div class="card-actions">
-        <button class="btn-edit" onclick="editObj(${o.id})">✏️</button>
-        <button class="btn-del" onclick="deleteObj(${o.id})">🗑</button>
+        <button class="btn-edit" data-id="${o.id}" onclick="editObj(this.dataset.id)">✏️ Редактировать</button>
+        <button class="btn-del" data-id="${o.id}" onclick="deleteObj(this.dataset.id)">🗑 Удалить</button>
       </div>
     </div>`;
   }).join('');
@@ -770,6 +830,7 @@ function renderList() {
 
 function editObj(id) {
   const o = objs.find(x=>String(x.id)===String(id));
+  console.log('editObj id:', id, 'found:', !!o, 'total objs:', objs.length);
   if(!o) return;
   document.getElementById('edit-id').value=o.id;
   document.getElementById('f-client').value=o.client||'';
@@ -789,7 +850,16 @@ function editObj(id) {
 
 function setSelect(id,val){const el=document.getElementById(id);if(!el||!val)return;for(let i=0;i<el.options.length;i++){if(el.options[i].text===val||el.options[i].value===val){el.selectedIndex=i;break;}}}
 
-function deleteObj(id){if(confirm('Удалить?')){objs=objs.filter(o=>String(o.id)!==String(id));save();renderList();}}
+function deleteObj(id){
+  if(confirm('Удалить объект?')){
+    objs=objs.filter(o=>String(o.id)!==String(id));
+    save();
+    renderList();
+    // Удалить из Google Таблицы
+    fetch(SHEET_URL,{method:'POST',body:JSON.stringify({action:'delete',id:String(id)})})
+    .catch(e=>console.warn('Ошибка удаления из таблицы:',e));
+  }
+}
 
 
 // ===== СТАТИСТИКА =====
