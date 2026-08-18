@@ -1,450 +1,1103 @@
-// ===== АРБОЗАВР CRM — Apps Script =====
-const FOLDER_ID = '1FX0fTvz4sMkena0tLQwRSugPaziXvauR';
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Арбозавр CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;max-width:500px;margin:auto;padding:15px;background:#f0f2f5;padding-bottom:30px}
+.app-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;background:#fff;padding:14px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.app-header h2{color:#2d6a2d;margin:0;font-size:20px;font-weight:700}
+.tabs{display:flex;gap:3px;margin-bottom:16px;background:#fff;padding:4px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);overflow-x:auto}
+.tab-btn{flex:1;min-width:60px;padding:10px 4px;font-size:12px;background:transparent;border:none;border-radius:9px;cursor:pointer;font-weight:600;color:#555;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:#2d8c2d;color:#fff;box-shadow:0 2px 8px rgba(45,140,45,.3)}
+.tab-content{display:none}.tab-content.active{display:block}
+.form-card{background:#fff;padding:18px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.section-title{font-size:14px;font-weight:700;color:#2d6a2d;margin:20px 0 8px;padding-bottom:6px;border-bottom:2px solid #e8f5e9;text-transform:uppercase;letter-spacing:.5px}
+label{display:block;font-size:12px;color:#666;margin:13px 0 5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{width:100%;padding:13px;font-size:16px;border:2px solid #e8ecf0;border-radius:10px;background:#f8f9fa;margin-bottom:2px;font-family:inherit;transition:all .2s;color:#333}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#2d8c2d;background:#fff;box-shadow:0 0 0 3px rgba(45,140,45,.1)}
+.btn{width:100%;padding:15px;font-size:17px;margin-top:14px;border:none;border-radius:12px;cursor:pointer;font-weight:700;transition:all .2s;color:#fff}
+.btn:active{transform:scale(.98)}
+.btn-green{background:#2d8c2d;box-shadow:0 4px 12px rgba(45,140,45,.3)}
+.btn-grey{background:#6c757d;box-shadow:0 4px 12px rgba(108,117,125,.3)}
+.btn-blue{background:#2980b9;box-shadow:0 4px 12px rgba(41,128,185,.3)}
+.btn-purple{background:#8e44ad;box-shadow:0 4px 12px rgba(142,68,173,.3)}
+.btn-teal{background:#16a085;box-shadow:0 4px 12px rgba(22,160,133,.3)}
+.msg{display:none;border-radius:10px;padding:13px;margin-top:13px;font-size:15px;text-align:center;font-weight:600}
+.msg-ok{background:#e6ffe6;border:2px solid #4caf50;color:#2d6a2d}
+.msg-err{background:#fdecea;border:2px solid #e74c3c;color:#c0392b}
+.card{background:#fff;border-radius:12px;padding:15px;margin-bottom:11px;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:4px solid #2d8c2d}
+.card h3{margin:0;color:#2d6a2d;font-size:16px;font-weight:700}
+.card p{margin:3px 0;font-size:13px;color:#555;line-height:1.5}
+.card .cost{font-weight:700;color:#e67e22;font-size:16px;margin-top:6px}
+.card-actions{display:flex;gap:8px;margin-top:11px}
+.card-actions button{flex:1;padding:9px;font-size:13px;border:none;border-radius:8px;cursor:pointer;font-weight:600;color:#fff}
+.btn-edit{background:#3498db}.btn-del{background:#e74c3c}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:7px}
+.date-badge{flex-shrink:0;background:#e8f5e9;color:#2d6a2d;font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px}
+.edit-banner{display:none;background:#eaf4ff;border:2px solid #3498db;color:#1a5276;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:14px;font-weight:700}
+.tree-item{background:#f8f9fa;border-radius:12px;padding:14px;margin-bottom:10px;border:2px solid #e8ecf0;position:relative}
+.tree-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.tree-item-title{font-weight:700;color:#2d6a2d;font-size:15px}
+.tree-item-del{background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-weight:600}
+.btn-add-tree{width:100%;padding:12px;font-size:15px;margin-top:8px;border:2px dashed #2d8c2d;border-radius:10px;cursor:pointer;font-weight:600;color:#2d8c2d;background:transparent}
+.calc-result{background:#e8f5e9;border-radius:12px;padding:16px;margin-top:16px}
+.calc-result h3{color:#2d6a2d;margin:0 0 10px;font-size:16px}
+.calc-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #c8e6c9;font-size:14px}
+.calc-row:last-child{border-bottom:none}
+.calc-row.total{font-weight:700;font-size:17px;color:#2d6a2d;margin-top:4px;padding-top:10px}
+.calc-row.profit{color:#27ae60;font-weight:700}
+.calc-row.loss{color:#e74c3c;font-weight:700}
+.calc-row.subtotal{color:#e67e22;font-weight:600;font-size:13px}
+.coef-group{background:#f8f9fa;border-radius:10px;padding:12px;margin-top:8px}
+.coef-group-title{font-size:12px;font-weight:700;color:#2d6a2d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.coef-option{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;cursor:pointer}
+.coef-option:last-child{border-bottom:none}
+.coef-option label{margin:0;text-transform:none;letter-spacing:0;font-size:14px;color:#333;cursor:pointer;font-weight:400}
+.coef-val{margin-left:auto;font-weight:700;color:#2d6a2d;font-size:13px;flex-shrink:0}
+.calc-tree-block{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:2px solid #e8ecf0}
+.calc-tree-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.calc-tree-block-title{font-weight:700;color:#2d6a2d;font-size:15px}
+.calc-tree-del{background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer}
+.stats-card{background:#fff;border-radius:14px;padding:18px;margin-bottom:13px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.stats-card h3{margin:0 0 12px;color:#2d6a2d;font-size:17px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:15px}
+.stat-row:last-child{border-bottom:none}
+.stat-val{font-weight:700;color:#2d6a2d}
+.empty{text-align:center;padding:30px 20px;color:#aaa;font-size:15px}
+.photo-wrap{position:relative;display:inline-block}
+.photo-wrap img{width:80px;height:80px;object-fit:cover;border-radius:8px;margin:4px}
+.photo-del{position:absolute;top:-5px;right:-5px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer}
+.quality-ok{color:#27ae60;font-size:14px;padding:6px 0}
+.quality-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#c0392b}
+.quality-row:last-child{border-bottom:none}
+.quality-val{font-weight:700}
+.warn-badge{display:inline-block;background:#fff3cd;color:#856404;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-right:4px}
+</style>
+</head>
+<body>
 
-const OBJ_HEADERS = [
-  'Дата', 'Клиент', 'Телефон', 'Адрес', 'Источник', 'Причина',
-  'Деревья (JSON)', 'Стоимость', 'Низовой', 'Аренда вышки', 'Прочие расходы',
-  'Прибыль', 'Рентабельность', '₽/ч', 'Часы',
-  'Отзыв', 'Авито', 'Telegram', 'Оценка', 'Комментарий', 'Фото (ссылки)', 'ID'
-];
+<div class="app-header">
+  <h2>Арбозавр CRM</h2>
+</div>
 
-function jsonOut(obj) {
-  return ContentService
-    .createTextOutput(typeof obj === 'string' ? obj : JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('list',this)">📋 Объекты</button>
+  <button class="tab-btn" onclick="switchTab('add',this)">➕ Новый</button>
+  <button class="tab-btn" onclick="switchTab('calc',this)">🧮 Расчёт</button>
+  <button class="tab-btn" onclick="switchTab('stats',this)">📊 Итоги</button>
+</div>
+
+<!-- СПИСОК -->
+<div id="tab-list" class="tab-content active">
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input id="search-input" placeholder="🔍 Поиск по клиенту, адресу..." type="text"
+      style="flex:1;padding:11px 14px;font-size:15px;border:2px solid #e8ecf0;border-radius:10px;background:#fff;outline:none"
+      oninput="renderList()">
+  </div>
+  <div id="list-count" style="font-size:12px;color:#aaa;margin-bottom:8px;text-align:right"></div>
+  <div id="obj-list"></div>
+  <button class="btn btn-blue" onclick="exportCSV()">📤 Экспорт CSV</button>
+</div>
+
+<!-- ФОРМА -->
+<div id="tab-add" class="tab-content">
+<div class="form-card">
+  <div id="edit-banner" class="edit-banner"></div>
+  <input type="hidden" id="edit-id">
+  <div class="section-title">👤 Клиент</div>
+  <label>Клиент</label>
+  <input id="f-client" placeholder="Имя клиента">
+  <label>Телефон</label>
+  <input id="f-phone" placeholder="+7 (___) ___-__-__">
+  <label>Адрес</label>
+  <input id="f-address" placeholder="Адрес">
+  <label>Источник</label>
+  <select id="f-source"><option>Авито</option><option>Telegram</option><option>Сарафан</option><option>Другое</option></select>
+  <label>Причина</label>
+  <select id="f-reason"><option>Аварийное дерево</option><option>Затенение</option><option>Стройка</option><option>Сухостой</option><option>Угроза падения</option><option>Другое</option></select>
+  <div class="section-title">🌳 Деревья</div>
+  <div id="tree-list"></div>
+  <button class="btn-add-tree" onclick="addTreeToForm()">+ Добавить дерево</button>
+  <div class="section-title">💰 Финансы</div>
+  <label>Общая стоимость (₽)</label>
+  <input id="f-cost" type="number">
+
+  <label>Низовой (₽)</label>
+  <input id="f-nizovoy" type="number">
+  <label>Аренда вышки (₽)</label>
+  <input id="f-lift" type="number">
+  <label>Прочие расходы (₽)</label>
+  <input id="f-expenses" type="number">
+  <div class="section-title">⚙️ Работа</div>
+  <label>Часы работы</label>
+  <input id="f-hours" type="number">
+  <div class="section-title">📣 Маркетинг</div>
+  <label>Отзыв</label>
+  <select id="f-review"><option>Да</option><option>Нет</option></select>
+  <label>Авито</label>
+  <select id="f-avito"><option>Нет</option><option>Да</option></select>
+  <label>Telegram</label>
+  <select id="f-tg"><option>Нет</option><option>Да</option></select>
+  <div class="section-title">📝 Оценка</div>
+  <label>Оценка ценообразования</label>
+  <select id="f-pricing"><option>Попали в цену</option><option>Дороже на 5 000</option><option>Дороже на 10 000</option><option>Дешевле</option></select>
+  <label>Комментарий</label>
+  <textarea id="f-comment"></textarea>
+
+  <div class="section-title">📷 Фото объекта (можно несколько)</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <input id="f-files" type="file" accept="image/*" multiple onchange="addPhotos(this)">
+    <button class="btn btn-grey" style="padding:8px 16px;font-size:13px;width:auto;" onclick="clearPhotos()">🗑 Очистить</button>
+  </div>
+  <div id="photo-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
+
+  <button class="btn btn-green" id="btn-save" onclick="saveObj()">💾 Сохранить</button>
+  <button class="btn btn-grey" onclick="clearForm()">🗑 Очистить</button>
+  <div id="msg-ok" class="msg msg-ok">✅ Сохранено!</div>
+  <div id="msg-err" class="msg msg-err">❌ Ошибка</div>
+</div>
+</div>
+
+<!-- КАЛЬКУЛЯТОР -->
+<div id="tab-calc" class="tab-content">
+<div class="form-card">
+  <div class="section-title">🌳 Деревья для расчёта</div>
+  <div id="calc-tree-list"></div>
+  <button class="btn-add-tree" onclick="addCalcTree()">+ Добавить дерево</button>
+
+  <div class="section-title">🏷 Скидка за объём</div>
+  <label>Скидка (%)</label>
+  <input id="c-discount" type="number" placeholder="0" min="0" max="50" oninput="calcTotal()">
+
+  <div class="section-title">💸 Расходы</div>
+  <label>Низовой (₽)</label>
+  <input id="c-nizovoy" type="number" oninput="calcTotal()">
+  <label>Аренда вышки (₽)</label>
+  <input id="c-lift" type="number" oninput="calcTotal()">
+  <label>Амортизация (₽)</label>
+  <input id="c-amort" type="number" oninput="calcTotal()">
+  <label>Бензин / дорога (₽)</label>
+  <input id="c-fuel" type="number" oninput="calcTotal()">
+  <label>Утилизация (₽)</label>
+  <input id="c-disposal" type="number" oninput="calcTotal()">
+  <label>Прочие (₽)</label>
+  <input id="c-other" type="number" oninput="calcTotal()">
+
+  <div id="calc-result" class="calc-result" style="display:none">
+    <h3>📊 Итог</h3>
+    <div id="calc-trees-breakdown"></div>
+    <div class="calc-row"><span>Сумма по деревьям</span><span id="r-trees-sum">—</span></div>
+    <div class="calc-row" id="r-discount-row" style="display:none"><span>Скидка за объём</span><span id="r-discount">—</span></div>
+    <div class="calc-row"><span>Допрасходы</span><span id="r-expenses">—</span></div>
+    <div class="calc-row total"><span>ИТОГО клиенту</span><span id="r-total">—</span></div>
+    <div class="calc-row profit" id="r-profit-row"><span>Чистая прибыль</span><span id="r-profit">—</span></div>
+    <div class="calc-row"><span>Рентабельность</span><span id="r-margin">—</span></div>
+
+    <div class="calc-row" style="margin-top:12px;border-top:2px solid #c8e6c9;padding-top:12px">
+      <span style="color:#555;font-weight:600">Своя сумма (₽)</span>
+      <input id="c-custom" type="number" placeholder="оставьте пустым" oninput="applyCustomSum()" style="width:120px;margin-left:auto;background:#fff;border:2px solid #2d8c2d;border-radius:6px;padding:4px 8px;font-size:14px;color:#2d6a2d">
+    </div>
+  </div>
+
+  <button class="btn btn-teal" onclick="transferCalcToForm()" style="margin-top:8px">➡️ Перенести в объект</button>
+  <button class="btn btn-blue" onclick="saveCalcToSheet()" style="margin-top:8px">💾 Сохранить расчёт в Google Таблицу</button>
+</div>
+</div>
+
+<!-- СТАТИСТИКА -->
+<div id="tab-stats" class="tab-content">
+  <div class="stats-card" style="padding-bottom:12px">
+    <label style="margin:0 0 6px;text-transform:none;letter-spacing:0;font-size:13px;color:#555">Период</label>
+    <select id="stats-period" onchange="updateStats()"
+      style="width:100%;padding:11px 12px;font-size:15px;border:2px solid #e8ecf0;border-radius:10px;background:#fff;color:#333;outline:none">
+      <option value="all">Всё время</option>
+      <option value="month">Этот месяц</option>
+      <option value="prev-month">Прошлый месяц</option>
+      <option value="week">Эта неделя</option>
+    </select>
+  </div>
+  <div class="stats-card">
+    <h3>📊 Статистика <span id="s-period-label" style="font-size:12px;font-weight:600;color:#888"></span></h3>
+    <div class="stat-row"><span>Объектов</span><span class="stat-val" id="s-count">0</span></div>
+    <div class="stat-row"><span>Выручка</span><span class="stat-val" id="s-sum">0 ₽</span></div>
+    <div class="stat-row"><span>Прибыль</span><span class="stat-val" id="s-profit">0 ₽</span></div>
+    <div class="stat-row"><span>Рентабельность</span><span class="stat-val" id="s-margin">0%</span></div>
+    <div class="stat-row"><span>₽/ч</span><span class="stat-val" id="s-profitHour">0 ₽/ч</span></div>
+    <div class="stat-row"><span>Средний чек</span><span class="stat-val" id="s-avg">0 ₽</span></div>
+    <div class="stat-row"><span>Часов</span><span class="stat-val" id="s-hours">0 ч</span></div>
+    <div class="stat-row"><span>Низовой итого</span><span class="stat-val" id="s-nizovoy">0 ₽</span></div>
+    <div class="stat-row"><span>Аренда вышки итого</span><span class="stat-val" id="s-liftTotal">0 ₽</span></div>
+    <div class="stat-row"><span>Прочие расходы итого</span><span class="stat-val" id="s-exp">0 ₽</span></div>
+  </div>
+  <div class="stats-card" id="quality-card">
+    <h3>⚠️ Качество данных</h3>
+    <div id="s-quality"></div>
+  </div>
+  <div class="stats-card">
+    <h3>📣 Маркетинг</h3>
+    <div class="stat-row"><span>Отзывов</span><span class="stat-val" id="s-reviews">0</span></div>
+    <div class="stat-row"><span>Авито</span><span class="stat-val" id="s-avito">0</span></div>
+    <div class="stat-row"><span>Telegram</span><span class="stat-val" id="s-tg">0</span></div>
+  </div>
+  <div class="stats-card">
+    <h3>🌳 Деревья</h3>
+    <div id="s-trees"></div>
+  </div>
+  <div class="stats-card">
+    <h3>📍 Источники</h3>
+    <div id="s-sources"></div>
+  </div>
+</div>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxEuW6gh8UEN5yzha3UZw2EhqI3FESWhpzkII84WC0YBDvDK84NFG1XGBJkketq0RLZWQ/exec";
+let objs = [];
+['arbozavr','arbozavr6','arbozavr_old'].forEach(k=>{
+  if(localStorage.getItem(k)) {
+    const old = localStorage.getItem(k);
+    if(!localStorage.getItem('arbozavr7')) localStorage.setItem('arbozavr7', old);
+    localStorage.removeItem(k);
+  }
+});
+let calcTrees = [];
+let formTrees = [];
+let selectedFiles = [];
+let existingPhotoUrls = [];
+
+const TREE_TYPES = ['Берёза','Липа','Туя','Сосна','Ель','Дуб','Клён','Ясень','Тополь','Ива','Осина','Вяз','Черёмуха','Рябина','Яблоня','Груша','Слива','Вишня','Лиственница','Пихта','Другое'];
+const WORK_TYPES = ['Полный спил','Спил до живых веток','Обрезка сухих ветвей','Частичная обрезка','Валка с оттяжками'];
+const COMPLEXITY = ['1 — Простая','2 — Средняя','3 — Сложная','4 — Очень сложная'];
+
+function genId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 }
 
-function tz() {
-  try {
-    return SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone() || 'Europe/Moscow';
-  } catch (e) {
-    return 'Europe/Moscow';
-  }
-}
-
-function formatSheetDate(v) {
-  if (v instanceof Date && !isNaN(v.getTime())) {
-    return Utilities.formatDate(v, tz(), 'dd.MM.yyyy');
-  }
-  const s = String(v || '').trim();
-  if (!s) return '';
-  const ru = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-  if (ru) return ('0' + ru[1]).slice(-2) + '.' + ('0' + ru[2]).slice(-2) + '.' + ru[3];
-  const iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return iso[3] + '.' + iso[2] + '.' + iso[1];
+function formatDateRU(d) {
+  if (!d && d !== 0) return '';
+  const s = String(d).trim();
+  const ru = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (ru) return ('0'+ru[1]).slice(-2)+'.'+('0'+ru[2]).slice(-2)+'.'+ru[3];
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return iso[3]+'.'+iso[2]+'.'+iso[1];
+  const dt = new Date(s);
+  if (!isNaN(dt.getTime())) return dt.toLocaleDateString('ru-RU');
   return s;
 }
 
-function dateAsText(str) {
-  return formatSheetDate(str);
-}
-
-function getObjSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Объекты');
-  if (!sheet) {
-    sheet = ss.insertSheet('Объекты');
-    sheet.appendRow(OBJ_HEADERS);
-    sheet.getRange(1, 1, 1, OBJ_HEADERS.length).setFontWeight('bold');
-    return sheet;
+function pick(row, names, fallback) {
+  for (const n of names) {
+    if (row[n] !== undefined && row[n] !== null && row[n] !== '') return row[n];
   }
-  ensureHeaders(sheet);
-  return sheet;
+  const keys = Object.keys(row);
+  for (const n of names) {
+    const found = keys.find(k => String(k).trim().toLowerCase() === String(n).toLowerCase());
+    if (found && row[found] !== undefined && row[found] !== '') return row[found];
+  }
+  return fallback;
 }
 
-function ensureHeaders(sheet) {
-  const lastCol = Math.max(sheet.getLastColumn(), 1);
-  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || '').trim());
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  else {
+    const map = {list:0, add:1, calc:2, stats:3};
+    const b = document.querySelectorAll('.tab-btn')[map[name]];
+    if (b) b.classList.add('active');
+  }
+  if(name==='stats') updateStats();
+}
 
-  OBJ_HEADERS.forEach(name => {
-    if (!headers.some(h => h === name)) {
-      const col = headers.length + 1;
-      sheet.getRange(1, col).setValue(name).setFontWeight('bold');
-      headers.push(name);
+function addTreeToForm(tree) {
+  const t = tree || {id: Date.now(), type: 'Берёза', work: 'Полный спил', count: 1, complexity: '1 — Простая', obstacles: '', note: ''};
+  if(!tree) formTrees.push(t);
+  renderFormTrees();
+}
+
+function renderFormTrees() {
+  const el = document.getElementById('tree-list');
+  if(!formTrees.length) { el.innerHTML = '<p style="color:#aaa;font-size:14px;text-align:center;padding:10px">Нет деревьев</p>'; return; }
+  el.innerHTML = formTrees.map((t,i) => `
+    <div class="tree-item">
+      <div class="tree-item-header"><span class="tree-item-title">🌳 ${i+1}</span><button class="tree-item-del" onclick="removeFormTree(${t.id})">✕</button></div>
+      <label>Вид</label>
+      <select onchange="updateFormTree(${t.id},'type',this.value)">${TREE_TYPES.map(tt=>`<option${tt===t.type?' selected':''}>${tt}</option>`).join('')}</select>
+      <label>Работа</label>
+      <select onchange="updateFormTree(${t.id},'work',this.value)">${WORK_TYPES.map(w=>`<option${w===t.work?' selected':''}>${w}</option>`).join('')}</select>
+      <label>Количество</label>
+      <input type="number" min="1" value="${t.count}" onchange="updateFormTree(${t.id},'count',this.value)">
+      <label>Сложность</label>
+      <select onchange="updateFormTree(${t.id},'complexity',this.value)">${COMPLEXITY.map(c=>`<option${c===t.complexity?' selected':''}>${c}</option>`).join('')}</select>
+      <label>Препятствия</label>
+      <input placeholder="провода, дом..." value="${t.obstacles||''}" onchange="updateFormTree(${t.id},'obstacles',this.value)">
+      <label>Примечание</label>
+      <input placeholder="пометки" value="${t.note||''}" onchange="updateFormTree(${t.id},'note',this.value)">
+    </div>`).join('');
+}
+
+function updateFormTree(id, field, val) {
+  const t = formTrees.find(t=>t.id===id);
+  if(t) t[field] = field==='count' ? (parseInt(val)||1) : val;
+}
+
+function removeFormTree(id) { formTrees = formTrees.filter(t=>t.id!==id); renderFormTrees(); }
+
+function addCalcTree() {
+  const id = Date.now();
+  calcTrees.push({id, type:'Берёза', diameter:0, obs:1.0, wire:1.0, breed:1.0, state:1.0, liana:1.0, trunks:1.0, height:1.0, extra:1.0, cost:0});
+  renderCalcTrees();
+}
+
+function renderCalcTrees() {
+  const el = document.getElementById('calc-tree-list');
+  if(!calcTrees.length) { el.innerHTML = '<p style="color:#aaa;font-size:14px;text-align:center;padding:10px">Добавьте деревья</p>'; calcTotal(); return; }
+  el.innerHTML = calcTrees.map((t,i) => `
+    <div class="calc-tree-block">
+      <div class="calc-tree-block-header"><span class="calc-tree-block-title">🌳 ${i+1}</span><button class="calc-tree-del" onclick="removeCalcTree(${t.id})">✕</button></div>
+      <label>Вид</label>
+      <select onchange="updateCalcTree(${t.id},'type',this.value)">${TREE_TYPES.map(tt=>`<option${tt===t.type?' selected':''}>${tt}</option>`).join('')}</select>
+      <label>Диаметр (см)</label>
+      <input type="number" placeholder="40" value="${t.diameter||''}" oninput="updateCalcTree(${t.id},'diameter',this.value)">
+      <div class="coef-group">
+        <div class="coef-group-title">Помехи</div>
+        ${[[1.0,'Нет'],[1.15,'25%'],[1.45,'50%'],[1.85,'75%'],[2.33,'100%']].map(([v,l])=>`<div class="coef-option"><input type="radio" name="obs-${t.id}" value="${v}" ${t.obs==v?'checked':''} onchange="updateCalcTree(${t.id},'obs',${v})"><label>${l}</label><span class="coef-val">×${v}</span></div>`).join('')}
+      </div>
+      <div class="coef-group">
+        <div class="coef-group-title">Провода</div>
+        ${[[1.0,'Нет'],[1.1,'За кроной'],[1.25,'Изол. внутри'],[1.3,'Неизол. внутри'],[1.4,'Вросший']].map(([v,l])=>`<div class="coef-option"><input type="radio" name="wire-${t.id}" value="${v}" ${t.wire==v?'checked':''} onchange="updateCalcTree(${t.id},'wire',${v})"><label>${l}</label><span class="coef-val">×${v}</span></div>`).join('')}
+      </div>
+      <div class="coef-group">
+        <div class="coef-group-title">Порода</div>
+        ${[[1.0,'Лиственные'],[1.0,'Хвойные без смолы'],[1.05,'Хвойные со смолой (мороз)'],[1.12,'Хвойные (смола)'],[1.45,'Гледичия']].map(([v,l])=>`<div class="coef-option"><input type="radio" name="breed-${t.id}" value="${v}" ${t.breed==v?'checked':''} onchange="updateCalcTree(${t.id},'breed',${v})"><label>${l}</label><span class="coef-val">×${v}</span></div>`).join('')}
+      </div>
+      <div class="coef-group">
+        <div class="coef-group-title">Состояние</div>
+        ${[[1.0,'Живое'],[1.18,'Дупло'],[1.3,'Сухое']].map(([v,l])=>`<div class="coef-option"><input type="radio" name="state-${t.id}" value="${v}" ${t.state==v?'checked':''} onchange="updateCalcTree(${t.id},'state',${v})"><label>${l}</label><span class="coef-val">×${v}</span></div>`).join('')}
+      </div>
+      <div class="coef-group">
+        <div class="coef-group-title">Лианы</div>
+        ${[[1.0,'Нет'],[1.3,'25%'],[1.7,'50%'],[2.1,'75%'],[2.5,'100%']].map(([v,l])=>`<div class="coef-option"><input type="radio" name="liana-${t.id}" value="${v}" ${t.liana==v?'checked':''} onchange="updateCalcTree(${t.id},'liana',${v})"><label>${l}</label><span class="coef-val">×${v}</span></div>`).join('')}
+      </div>
+      <div class="coef-group">
+        <div class="coef-group-title">Стволы</div>
+        ${[[1.0,'1'],[1.3,'2'],[1.6,'3'],[1.9,'4'],[2.2,'5']].map(([v,l])=>`<div class="coef-option"><input type="radio" name="trunks-${t.id}" value="${v}" ${t.trunks==v?'checked':''} onchange="updateCalcTree(${t.id},'trunks',${v})"><label>${l}</label><span class="coef-val">×${v}</span></div>`).join('')}
+      </div>
+      <div class="coef-group">
+        <div class="coef-group-title">Высота</div>
+        ${[[1.0,'До 15'],[1.2,'16–20'],[1.4,'21–25'],[1.7,'26–30'],[2.1,'31–40'],[2.4,'41–50'],[2.8,'51–60'],[3.5,'>60']].map(([v,l])=>`<div class="coef-option"><input type="radio" name="height-${t.id}" value="${v}" ${t.height==v?'checked':''} onchange="updateCalcTree(${t.id},'height',${v})"><label>${l}</label><span class="coef-val">×${v}</span></div>`).join('')}
+      </div>
+      <label>Доп. коэффициент</label>
+      <input type="number" step="0.05" value="${t.extra||1.0}" oninput="updateCalcTree(${t.id},'extra',this.value)">
+      <div style="background:#e8f5e9;border-radius:8px;padding:10px;margin-top:8px;text-align:center"><span style="font-size:13px;color:#555">Цена: </span><span id="tree-cost-${t.id}" style="font-weight:700;color:#2d6a2d;font-size:16px">—</span></div>
+    </div>`).join('');
+  calcTotal();
+}
+
+function updateCalcTree(id, field, val) {
+  const t = calcTrees.find(t=>t.id===id);
+  if(!t) return;
+  t[field] = (field==='diameter'||field==='obs'||field==='wire'||field==='breed'||field==='state'||field==='liana'||field==='trunks'||field==='height'||field==='extra') ? parseFloat(val)||0 : val;
+  calcTotal();
+}
+
+function removeCalcTree(id) { calcTrees = calcTrees.filter(t=>t.id!==id); renderCalcTrees(); }
+
+function calcTotal() {
+  if(!calcTrees.length) { document.getElementById('calc-result').style.display='none'; return; }
+  let treesSum = 0;
+  const breakdown = [];
+  calcTrees.forEach((t,i) => {
+    if(!t.diameter) { const el = document.getElementById('tree-cost-'+t.id); if(el) el.textContent = '— (введите диаметр)'; return; }
+    const d = Math.max(t.diameter, 30);
+    const base = Math.round(4.2 * d * (d+10));
+    const coef = t.obs * t.wire * t.breed * t.state * t.liana * t.trunks * t.height * (t.extra||1);
+    const cost = Math.round(base * coef);
+    t.cost = cost;
+    treesSum += cost;
+    breakdown.push({name: t.type || 'Дерево '+(i+1), cost, d, coef});
+    const el = document.getElementById('tree-cost-'+t.id);
+    if(el) el.textContent = cost.toLocaleString('ru-RU') + ' ₽';
+  });
+  const discount = Math.min(Math.max(parseFloat(document.getElementById('c-discount').value)||0,0),50);
+  const discountAmt = Math.round(treesSum * discount / 100);
+  const workCost = treesSum - discountAmt;
+  const nizovoy = parseInt(document.getElementById('c-nizovoy').value)||0;
+  const lift = parseInt(document.getElementById('c-lift').value)||0;
+  const amort = parseInt(document.getElementById('c-amort').value)||0;
+  const fuel = parseInt(document.getElementById('c-fuel').value)||0;
+  const disposal = parseInt(document.getElementById('c-disposal').value)||0;
+  const other = parseInt(document.getElementById('c-other').value)||0;
+  const totalExp = nizovoy + lift + amort + fuel + disposal + other;
+  const profit = workCost - totalExp;
+  const margin = workCost > 0 ? Math.round((profit/workCost)*100) : 0;
+
+  document.getElementById('calc-trees-breakdown').innerHTML = breakdown.map(b=>`
+    <div class="calc-row subtotal"><span>${b.name} (D=${b.d}см, ×${b.coef.toFixed(2)})</span><span>${b.cost.toLocaleString('ru-RU')} ₽</span></div>`).join('');
+
+  document.getElementById('r-trees-sum').textContent = treesSum.toLocaleString('ru-RU')+' ₽';
+  if(discount > 0) {
+    document.getElementById('r-discount-row').style.display='flex';
+    document.getElementById('r-discount').textContent = '−'+discountAmt.toLocaleString('ru-RU')+' ₽ ('+discount+'%)';
+  } else {
+    document.getElementById('r-discount-row').style.display='none';
+  }
+  document.getElementById('r-expenses').textContent = totalExp.toLocaleString('ru-RU')+' ₽';
+  document.getElementById('r-total').textContent = workCost.toLocaleString('ru-RU')+' ₽';
+  document.getElementById('r-profit').textContent = profit.toLocaleString('ru-RU')+' ₽';
+  document.getElementById('r-margin').textContent = margin+'%';
+  document.getElementById('r-profit-row').className = 'calc-row '+(profit>=0?'profit':'loss');
+  document.getElementById('calc-result').style.display='block';
+  window._calcResult = {cost: workCost, nizovoy, lift, expenses: amort+fuel+disposal+other, profit, profitPercent: margin, treesBreakdown: breakdown};
+}
+
+function applyCustomSum() {
+  const custom = parseFloat(document.getElementById('c-custom').value);
+  const totalEl = document.getElementById('r-total');
+  const profitEl = document.getElementById('r-profit');
+  const marginEl = document.getElementById('r-margin');
+  const workCost = parseFloat((document.getElementById('r-trees-sum').textContent||'').replace(/[^0-9-]/g,'')) || 0;
+  const discountTxt = document.getElementById('r-discount').textContent || '';
+  const discountAmt = parseFloat(discountTxt.replace(/[^0-9-]/g,'')) || 0;
+  const base = workCost - discountAmt;
+  const expenses = parseFloat((document.getElementById('r-expenses').textContent||'').replace(/[^0-9-]/g,'')) || 0;
+
+  if (!isNaN(custom) && custom > 0) {
+    totalEl.textContent = custom.toLocaleString('ru-RU') + ' ₽';
+    const profit = custom - expenses;
+    const margin = custom > 0 ? Math.round((profit/custom)*100) : 0;
+    profitEl.textContent = profit.toLocaleString('ru-RU') + ' ₽';
+    marginEl.textContent = margin + '%';
+    document.getElementById('r-profit-row').className = 'calc-row '+(profit>=0?'profit':'loss');
+    if (window._calcResult) window._calcResult.custom = custom;
+  } else {
+    const used = base;
+    totalEl.textContent = used.toLocaleString('ru-RU') + ' ₽';
+    const profit = used - expenses;
+    const margin = used > 0 ? Math.round((profit/used)*100) : 0;
+    profitEl.textContent = profit.toLocaleString('ru-RU') + ' ₽';
+    marginEl.textContent = margin + '%';
+    document.getElementById('r-profit-row').className = 'calc-row '+(profit>=0?'profit':'loss');
+    if (window._calcResult) delete window._calcResult.custom;
+  }
+}
+
+function transferCalcToForm() {
+  if(!window._calcResult) { alert('Сначала добавьте деревья и введите диаметры'); return; }
+  const r = window._calcResult;
+  const custom = parseFloat(document.getElementById('c-custom').value);
+  document.getElementById('f-cost').value = (!isNaN(custom) && custom > 0) ? custom : r.cost;
+  document.getElementById('f-nizovoy').value = r.nizovoy;
+  document.getElementById('f-lift').value = r.lift;
+  document.getElementById('f-expenses').value = r.expenses;
+
+  if(calcTrees.length) {
+    formTrees = calcTrees.map(ct => ({
+      id: Date.now()+Math.random(),
+      type: ct.type||'Берёза',
+      work:'Полный спил',
+      count:1,
+      complexity:'1 — Простая',
+      obstacles:'',
+      note: ct.diameter ? ('D='+ct.diameter+' см') : ''
+    }));
+    renderFormTrees();
+  }
+  switchTab('add');
+}
+
+function saveCalcState() {
+  const state = {
+    trees: calcTrees,
+    discount: document.getElementById('c-discount').value,
+    nizovoy: document.getElementById('c-nizovoy').value,
+    lift: document.getElementById('c-lift').value,
+    amort: document.getElementById('c-amort').value,
+    fuel: document.getElementById('c-fuel').value,
+    disposal: document.getElementById('c-disposal').value,
+    other: document.getElementById('c-other').value,
+    custom: document.getElementById('c-custom').value
+  };
+  localStorage.setItem('arbozavr_calc', JSON.stringify(state));
+}
+
+function loadCalcState() {
+  try {
+    const raw = localStorage.getItem('arbozavr_calc');
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.trees) calcTrees = state.trees;
+    document.getElementById('c-discount').value = state.discount || '';
+    document.getElementById('c-nizovoy').value = state.nizovoy || '';
+    document.getElementById('c-lift').value = state.lift || '';
+    document.getElementById('c-amort').value = state.amort || '';
+    document.getElementById('c-fuel').value = state.fuel || '';
+    document.getElementById('c-disposal').value = state.disposal || '';
+    document.getElementById('c-other').value = state.other || '';
+    document.getElementById('c-custom').value = state.custom || '';
+    renderCalcTrees();
+    calcTotal();
+    if (state.custom) applyCustomSum();
+  } catch(e) { console.warn('Ошибка загрузки расчёта:', e); }
+}
+
+function autoSaveCalc() {
+  const inputs = document.querySelectorAll('#tab-calc input, #tab-calc select');
+  inputs.forEach(el => el.addEventListener('change', saveCalcState));
+  const origAdd = addCalcTree;
+  addCalcTree = function() { origAdd(); saveCalcState(); };
+  const origRemove = removeCalcTree;
+  removeCalcTree = function(id) { origRemove(id); saveCalcState(); };
+}
+
+function saveCalcToSheet() {
+  if (!calcTrees.length || !calcTrees.some(t => t.diameter > 0)) {
+    alert('Добавьте деревья с диаметром в калькулятор!');
+    return;
+  }
+
+  const treesSum = parseFloat(document.getElementById('r-trees-sum').textContent.replace(/[^0-9]/g,'')) || 0;
+  const discount = parseFloat(document.getElementById('c-discount').value) || 0;
+  const discountAmt = Math.round(treesSum * discount / 100);
+  const nizovoy = parseInt(document.getElementById('c-nizovoy').value) || 0;
+  const lift = parseInt(document.getElementById('c-lift').value) || 0;
+  const amort = parseInt(document.getElementById('c-amort').value) || 0;
+  const fuel = parseInt(document.getElementById('c-fuel').value) || 0;
+  const disposal = parseInt(document.getElementById('c-disposal').value) || 0;
+  const other = parseInt(document.getElementById('c-other').value) || 0;
+  const expenses = nizovoy + lift + amort + fuel + disposal + other;
+  const total = parseFloat(document.getElementById('r-total').textContent.replace(/[^0-9]/g,'')) || 0;
+  const profit = parseFloat(document.getElementById('r-profit').textContent.replace(/[^0-9-]/g,'')) || 0;
+  const margin = parseFloat(document.getElementById('r-margin').textContent.replace(/[^0-9-]/g,'')) || 0;
+  const custom = parseFloat(document.getElementById('c-custom').value) || 0;
+
+  const data = {
+    action: 'saveCalc',
+    date: new Date().toLocaleString('ru-RU'),
+    client: document.getElementById('f-client').value || '',
+    address: document.getElementById('f-address').value || '',
+    treeCount: calcTrees.filter(t => t.diameter > 0).length,
+    treesSum: treesSum,
+    discountPercent: discount,
+    discountAmount: discountAmt,
+    nizovoy: nizovoy,
+    lift: lift,
+    amort: amort,
+    fuel: fuel,
+    disposal: disposal,
+    other: other,
+    expenses: expenses,
+    total: total,
+    profit: profit,
+    margin: margin,
+    custom: custom,
+    treesJSON: JSON.stringify(calcTrees.filter(t => t.diameter > 0))
+  };
+
+  const msg = document.createElement('div');
+  msg.style.cssText = 'background:#e8f5e9;border-radius:10px;padding:12px;margin-top:12px;text-align:center;color:#2d6a2d;font-weight:600';
+  msg.textContent = '⏳ Сохраняем расчёт...';
+  document.getElementById('calc-result').appendChild(msg);
+
+  fetch(SHEET_URL, { method: 'POST', body: JSON.stringify(data) })
+    .then(r => r.text())
+    .then(() => {
+      msg.textContent = '✅ Расчёт сохранён в Google Таблицу!';
+      msg.style.background = '#e6ffe6';
+      setTimeout(() => msg.remove(), 4000);
+    })
+    .catch(() => {
+      msg.textContent = '❌ Ошибка сохранения. Проверьте интернет.';
+      msg.style.background = '#fdecea';
+      msg.style.color = '#e74c3c';
+      setTimeout(() => msg.remove(), 4000);
+    });
+}
+
+function addPhotos(input) {
+  if (input.files && input.files.length > 0) {
+    for (let i = 0; i < input.files.length; i++) {
+      selectedFiles.push(input.files[i]);
     }
+    renderPhotoPreview();
+  }
+  input.value = '';
+}
+
+function clearPhotos() {
+  selectedFiles = [];
+  existingPhotoUrls = [];
+  renderPhotoPreview();
+  document.getElementById('f-files').value = '';
+}
+
+function removeExistingPhoto(index) {
+  existingPhotoUrls.splice(index, 1);
+  renderPhotoPreview();
+}
+
+function removeNewPhoto(index) {
+  selectedFiles.splice(index, 1);
+  renderPhotoPreview();
+}
+
+function renderPhotoPreview() {
+  const container = document.getElementById('photo-preview');
+  container.innerHTML = '';
+  existingPhotoUrls.forEach((url, index) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'photo-wrap';
+    const img = document.createElement('img');
+    img.src = url;
+    const del = document.createElement('button');
+    del.className = 'photo-del';
+    del.textContent = '✕';
+    del.onclick = function() { removeExistingPhoto(index); };
+    wrapper.appendChild(img);
+    wrapper.appendChild(del);
+    container.appendChild(wrapper);
+  });
+  selectedFiles.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'photo-wrap';
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      const del = document.createElement('button');
+      del.className = 'photo-del';
+      del.textContent = '✕';
+      del.onclick = function() { removeNewPhoto(index); };
+      wrapper.appendChild(img);
+      wrapper.appendChild(del);
+      container.appendChild(wrapper);
+    };
+    reader.readAsDataURL(file);
   });
 }
 
-function headerIndex(headers, name) {
-  const n = String(name).trim().toLowerCase();
-  for (let i = 0; i < headers.length; i++) {
-    if (String(headers[i] || '').trim().toLowerCase() === n) return i;
+function saveObj() {
+  const client = document.getElementById('f-client').value.trim();
+  if (!client) { alert('Введите клиента'); return; }
+
+  const editId = document.getElementById('edit-id').value;
+  const existing = editId ? objs.find(o => String(o.id) === String(editId)) : null;
+
+  const cost = parseInt(document.getElementById('f-cost').value) || 0;
+  const nizovoy = parseInt(document.getElementById('f-nizovoy').value) || 0;
+  const lift = parseInt(document.getElementById('f-lift').value) || 0;
+  const expenses = parseInt(document.getElementById('f-expenses').value) || 0;
+  const hours = parseInt(document.getElementById('f-hours').value) || 0;
+  const profit = cost - nizovoy - lift - expenses;
+
+  const warnings = [];
+  if (cost <= 0) warnings.push('• Стоимость не указана или равна 0');
+  if (hours <= 0 && cost > 0) warnings.push('• Часы не указаны → ₽/ч по объекту будет 0');
+  if (profit <= 0 && cost > 0) warnings.push('• Прибыль нулевая или отрицательная (проверьте стоимость и расходы)');
+  if (!formTrees.length) warnings.push('• Деревья не добавлены');
+  if (!existingPhotoUrls.length && !selectedFiles.length) warnings.push('• Нет фото объекта');
+
+  if (warnings.length) {
+    const ok = confirm('Проверьте данные:\n\n' + warnings.join('\n') + '\n\nВсё равно сохранить?');
+    if (!ok) return;
   }
-  return -1;
+
+  const obj = {
+    action: editId ? 'update' : 'save',
+    id: editId || genId(),
+    date: existing && existing.date ? formatDateRU(existing.date) : new Date().toLocaleDateString('ru-RU'),
+    client,
+    phone: document.getElementById('f-phone').value,
+    address: document.getElementById('f-address').value,
+    source: document.getElementById('f-source').value,
+    reason: document.getElementById('f-reason').value,
+    trees: JSON.stringify(formTrees),
+    treesReadable: formTrees.map(t => t.type + (t.count>1?' ('+t.count+' шт.)':'') + ' — ' + (t.work||'')).join('; '),
+    cost,
+    nizovoy,
+    expenses,
+    lift,
+    hours,
+    review: document.getElementById('f-review').value,
+    avito: document.getElementById('f-avito').value,
+    tg: document.getElementById('f-tg').value,
+    pricing: document.getElementById('f-pricing').value,
+    comment: document.getElementById('f-comment').value,
+    photoUrls: existingPhotoUrls.join(', ')
+  };
+  obj.profit = profit;
+  obj.profitPercent = obj.cost>0 ? Math.round((obj.profit/obj.cost)*100) : 0;
+  obj.profitPerHour = obj.hours>0 ? Math.round(obj.profit/obj.hours) : 0;
+
+  const btn = document.getElementById('btn-save');
+  const oldText = btn.textContent;
+  btn.textContent = '⏳ Сохраняем...';
+  btn.disabled = true;
+
+  if (selectedFiles.length > 0) {
+    const files = selectedFiles.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const base64 = e.target.result.split(',')[1];
+          resolve({ name: file.name, mimeType: file.type, base64: base64 });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(files).then(fileData => {
+      return fetch(SHEET_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'uploadPhotos', files: fileData })
+      }).then(r => r.text());
+    })
+    .then(text => {
+      try {
+        const data = JSON.parse(text);
+        if (data.urls && data.urls.length) {
+          const all = existingPhotoUrls.concat(data.urls);
+          obj.photoUrls = all.join(', ');
+        }
+      } catch(e) {}
+      sendObjToSheet(obj, btn, oldText);
+    })
+    .catch(err => {
+      console.error('Ошибка при загрузке фото:', err);
+      sendObjToSheet(obj, btn, oldText);
+    });
+  } else {
+    sendObjToSheet(obj, btn, oldText);
+  }
 }
 
-function getHeaders(sheet) {
-  const lastCol = Math.max(sheet.getLastColumn(), 1);
-  return sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || '').trim());
+function sendObjToSheet(obj, btn, oldText) {
+  fetch(SHEET_URL, {
+    method: 'POST',
+    body: JSON.stringify(obj)
+  })
+  .then(r => r.text())
+  .then(() => {
+    const idx = objs.findIndex(o => String(o.id) === String(obj.id));
+    if (idx >= 0) objs[idx] = obj;
+    else objs.push(obj);
+    save();
+    renderList();
+    clearForm();
+    document.getElementById('msg-ok').style.display = 'block';
+    setTimeout(() => document.getElementById('msg-ok').style.display = 'none', 3000);
+    switchTab('list');
+    loadFromSheet();
+  })
+  .catch(() => {
+    document.getElementById('msg-err').style.display = 'block';
+    setTimeout(() => document.getElementById('msg-err').style.display = 'none', 4000);
+  })
+  .finally(() => {
+    if (btn) { btn.textContent = oldText; btn.disabled = false; }
+  });
 }
 
-function isTotalsMarker(val) {
-  return /итог/i.test(String(val || '').trim());
+function setEditMode(on, name) {
+  const banner = document.getElementById('edit-banner');
+  const btn = document.getElementById('btn-save');
+  if (on) {
+    banner.style.display = 'block';
+    banner.textContent = '✏️ Редактирование: ' + (name || '');
+    btn.textContent = '💾 Сохранить изменения';
+  } else {
+    banner.style.display = 'none';
+    banner.textContent = '';
+    btn.textContent = '💾 Сохранить';
+  }
 }
 
-function isTotalsRow(row, headers) {
-  const iDate = headerIndex(headers, 'Дата');
-  const iClient = headerIndex(headers, 'Клиент');
-  if (iDate >= 0 && isTotalsMarker(row[iDate])) return true;
-  if (iClient >= 0 && isTotalsMarker(row[iClient])) return true;
-  return false;
+function clearForm() {
+  ['f-client','f-phone','f-address','f-cost','f-hours','f-nizovoy','f-expenses','f-lift','f-comment','edit-id'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('#tab-add select').forEach(s=>s.selectedIndex=0);
+  document.getElementById('f-files').value = '';
+  selectedFiles = [];
+  existingPhotoUrls = [];
+  renderPhotoPreview();
+  formTrees = [];
+  renderFormTrees();
+  setEditMode(false);
 }
 
-function buildRowFromData(headers, data, keepDate) {
-  const cost = Number(data.cost) || 0;
-  const nizovoy = Number(data.nizovoy) || 0;
-  const lift = Number(data.lift) || 0;
-  const expenses = Number(data.expenses) || 0;
-  const hours = Number(data.hours) || 0;
+function save(){localStorage.setItem('arbozavr7',JSON.stringify(objs));}
+
+function mapSheetRow(row, i) {
+  const treesRaw = pick(row, ['Деревья (JSON)','Деревья','trees'], '[]');
+  const cost = parseFloat(pick(row, ['Стоимость','cost'], 0)) || 0;
+  const nizovoy = parseFloat(pick(row, ['Низовой','nizovoy'], 0)) || 0;
+  const lift = parseFloat(pick(row, ['Аренда вышки','lift'], 0)) || 0;
+  const expenses = parseFloat(pick(row, ['Прочие расходы','expenses'], 0)) || 0;
+  const hours = parseFloat(pick(row, ['Часы','hours'], 0)) || 0;
+  // Если правили cost/расходы в Google Таблице — прибыль и ₽/ч пересчитываются здесь
   const profit = cost - nizovoy - lift - expenses;
   const profitPercent = cost > 0 ? Math.round((profit / cost) * 100) : 0;
   const profitPerHour = hours > 0 ? Math.round(profit / hours) : 0;
-
-  const map = {
-    'Дата': dateAsText(keepDate || data.date || ''),
-    'Клиент': data.client || '',
-    'Телефон': data.phone || '',
-    'Адрес': data.address || '',
-    'Источник': data.source || '',
-    'Причина': data.reason || '',
-    'Деревья (JSON)': data.trees || '[]',
-    'Стоимость': cost,
-    'Низовой': nizovoy,
-    'Аренда вышки': lift,
-    'Прочие расходы': expenses,
-    'Прибыль': profit,
-    'Рентабельность': profitPercent,
-    '₽/ч': profitPerHour,
-    'Часы': hours,
-    'Отзыв': data.review || '',
-    'Авито': data.avito || '',
-    'Telegram': data.tg || '',
-    'Оценка': data.pricing || '',
-    'Комментарий': data.comment || '',
-    'Фото (ссылки)': data.photoUrls || '',
-    'ID': data.id || ''
+  return {
+    id: String(pick(row, ['ID','id'], '') || ('tmp-'+i+'-'+Date.now())),
+    date: formatDateRU(pick(row, ['Дата','date'], '')),
+    client: pick(row, ['Клиент','client'], ''),
+    phone: pick(row, ['Телефон','phone'], ''),
+    address: pick(row, ['Адрес','address'], ''),
+    source: pick(row, ['Источник','source'], ''),
+    reason: pick(row, ['Причина','reason'], ''),
+    trees: treesRaw,
+    cost,
+    nizovoy,
+    lift,
+    expenses,
+    profit,
+    profitPercent,
+    profitPerHour,
+    hours,
+    review: pick(row, ['Отзыв','review'], ''),
+    avito: pick(row, ['Авито','avito'], ''),
+    tg: pick(row, ['Telegram','tg'], ''),
+    pricing: pick(row, ['Оценка','pricing'], ''),
+    comment: pick(row, ['Комментарий','comment'], ''),
+    photoUrls: pick(row, ['Фото (ссылки)','photoUrls'], '')
   };
-
-  return headers.map(h => (h in map ? map[h] : ''));
 }
 
-function findRowIndex(sheet, headers, data) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return -1;
-  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
-  const iId = headerIndex(headers, 'ID');
-  const iDate = headerIndex(headers, 'Дата');
-  const iClient = headerIndex(headers, 'Клиент');
-  const iAddr = headerIndex(headers, 'Адрес');
-  const wantId = String(data.id || '').trim();
+function load(){
+  try{const d=localStorage.getItem('arbozavr7');if(d)objs=JSON.parse(d);}catch(e){}
+  renderList();
+  renderFormTrees();
+  loadFromSheet();
+}
 
-  if (wantId && iId >= 0) {
-    for (let i = 0; i < values.length; i++) {
-      if (isTotalsRow(values[i], headers)) continue;
-      if (String(values[i][iId] || '').trim() === wantId) return i + 2;
-    }
+function loadFromSheet(){
+  const el = document.getElementById('obj-list');
+  if(el && !document.getElementById('sync-msg')) {
+    el.insertAdjacentHTML('afterbegin','<div id="sync-msg" style="text-align:center;padding:8px;font-size:13px;color:#2d8c2d">🔄 Синхронизация...</div>');
   }
-
-  const wantDate = formatSheetDate(data.date || '');
-  const wantClient = String(data.client || '').trim();
-  const wantAddr = String(data.address || '').trim();
-  if (wantDate && wantClient) {
-    for (let i = 0; i < values.length; i++) {
-      if (isTotalsRow(values[i], headers)) continue;
-      const rowDate = formatSheetDate(values[i][iDate]);
-      const rowClient = String(values[i][iClient] || '').trim();
-      const rowAddr = iAddr >= 0 ? String(values[i][iAddr] || '').trim() : '';
-      if (rowDate === wantDate && rowClient === wantClient && (!wantAddr || rowAddr === wantAddr)) {
-        return i + 2;
-      }
+  fetch(SHEET_URL)
+  .then(r=>r.json())
+  .then(data=>{
+    if(Array.isArray(data) && data.length>0){
+      objs = data.map((row,i)=>mapSheetRow(row,i));
+      save();
+      renderList();
     }
-  }
-  return -1;
-}
-
-function newId() {
-  return Utilities.getUuid();
-}
-
-function ensureRowIds(sheet, headers) {
-  const iId = headerIndex(headers, 'ID');
-  if (iId < 0) return;
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return;
-  const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
-  const idCol = [];
-  let changed = false;
-  for (let i = 0; i < values.length; i++) {
-    if (isTotalsRow(values[i], headers)) {
-      idCol.push([values[i][iId] || '']);
-      continue;
-    }
-    let id = String(values[i][iId] || '').trim();
-    if (!id) {
-      id = newId();
-      changed = true;
-    }
-    idCol.push([id]);
-  }
-  if (changed) sheet.getRange(2, iId + 1, idCol.length, 1).setValues(idCol);
-}
-
-function num(v) {
-  if (typeof v === 'number' && isFinite(v)) return v;
-  const n = parseFloat(String(v || '').replace(/\s/g, '').replace(',', '.'));
-  return isFinite(n) ? n : 0;
-}
-
-function refreshTotals(sheet) {
-  const headers = getHeaders(sheet);
-  const lastRow = sheet.getLastRow();
-  const iDate = headerIndex(headers, 'Дата');
-  const iClient = headerIndex(headers, 'Клиент');
-  const iCost = headerIndex(headers, 'Стоимость');
-  const iNiz = headerIndex(headers, 'Низовой');
-  const iLift = headerIndex(headers, 'Аренда вышки');
-  const iExp = headerIndex(headers, 'Прочие расходы');
-  const iProfit = headerIndex(headers, 'Прибыль');
-  const iMargin = headerIndex(headers, 'Рентабельность');
-  const iPh = headerIndex(headers, '₽/ч');
-  const iHours = headerIndex(headers, 'Часы');
-  const iComment = headerIndex(headers, 'Комментарий');
-  const iId = headerIndex(headers, 'ID');
-
-  let totalsRow = -1;
-  let values = [];
-  if (lastRow >= 2) {
-    values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
-    for (let i = values.length - 1; i >= 0; i--) {
-      if (isTotalsRow(values[i], headers)) {
-        totalsRow = i + 2;
-        break;
-      }
-    }
-  }
-
-  let count = 0, cost = 0, niz = 0, lift = 0, exp = 0, profit = 0, hours = 0, hoursProfit = 0, hoursOnly = 0;
-  values.forEach((row, idx) => {
-    if (totalsRow === idx + 2) return;
-    if (isTotalsRow(row, headers)) return;
-    count++;
-    const c = iCost >= 0 ? num(row[iCost]) : 0;
-    const p = iProfit >= 0 ? num(row[iProfit]) : 0;
-    const h = iHours >= 0 ? num(row[iHours]) : 0;
-    cost += c;
-    niz += iNiz >= 0 ? num(row[iNiz]) : 0;
-    lift += iLift >= 0 ? num(row[iLift]) : 0;
-    exp += iExp >= 0 ? num(row[iExp]) : 0;
-    profit += p;
-    hours += h;
-    if (h > 0) {
-      hoursOnly += h;
-      hoursProfit += p;
-    }
+    const msg=document.getElementById('sync-msg');
+    if(msg)msg.remove();
+  })
+  .catch(err=>{
+    console.warn('Не удалось загрузить из таблицы:', err);
+    const msg=document.getElementById('sync-msg');
+    if(msg)msg.remove();
   });
-
-  const avgCheck = count ? Math.round(cost / count) : 0;
-  const margin = cost > 0 ? Math.round((profit / cost) * 100) : 0;
-  const perHour = hoursOnly > 0 ? Math.round(hoursProfit / hoursOnly) : 0;
-  const avgHours = count ? Math.round((hours / count) * 10) / 10 : 0;
-
-  const row = new Array(headers.length).fill('');
-  if (iDate >= 0) row[iDate] = 'ИТОГО';
-  if (iClient >= 0) row[iClient] = count + ' объектов';
-  if (iCost >= 0) row[iCost] = cost;
-  if (iNiz >= 0) row[iNiz] = niz;
-  if (iLift >= 0) row[iLift] = lift;
-  if (iExp >= 0) row[iExp] = exp;
-  if (iProfit >= 0) row[iProfit] = profit;
-  if (iMargin >= 0) row[iMargin] = margin;
-  if (iPh >= 0) row[iPh] = perHour;
-  if (iHours >= 0) row[iHours] = hours;
-  if (iComment >= 0) {
-    row[iComment] = 'средний чек ' + avgCheck + ' ₽ · средние часы ' + avgHours + ' · ₽/ч по объектам с часами';
-  }
-  if (iId >= 0) row[iId] = 'TOTAL';
-
-  if (totalsRow > 1) {
-    sheet.getRange(totalsRow, 1, 1, headers.length).setValues([row]);
-  } else {
-    sheet.appendRow(row);
-    totalsRow = sheet.getLastRow();
-  }
-
-  sheet.getRange(totalsRow, 1, 1, headers.length)
-    .setFontWeight('bold')
-    .setBackground('#e8f5e9');
-
-  writeItogiSheet(count, cost, niz, lift, exp, profit, hours, avgCheck, avgHours, margin, perHour);
 }
 
-function writeItogiSheet(count, cost, niz, lift, exp, profit, hours, avgCheck, avgHours, margin, perHour) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Итоги');
-  if (!sheet) sheet = ss.insertSheet('Итоги');
-  sheet.clear();
-  sheet.getRange(1, 1, 1, 3).setValues([['Показатель', 'Значение', 'Как считаем']]).setFontWeight('bold');
-  const rows = [
-    ['Объектов', count, 'количество строк'],
-    ['Выручка (сумма)', cost, 'сумма стоимостей'],
-    ['Низовой (сумма)', niz, 'сумма'],
-    ['Аренда вышки (сумма)', lift, 'сумма'],
-    ['Прочие расходы (сумма)', exp, 'сумма'],
-    ['Прибыль (сумма)', profit, 'сумма (стоимость − низовой − вышка − прочие)'],
-    ['Часы (сумма)', hours, 'сумма часов'],
-    ['Средний чек', avgCheck, 'выручка / количество объектов'],
-    ['Средние часы на объект', avgHours, 'сумма часов / количество'],
-    ['Рентабельность', margin + '%', 'прибыль / выручка × 100'],
-    ['₽/ч', perHour, 'прибыль / часы, только где часы > 0']
-  ];
-  sheet.getRange(2, 1, rows.length, 3).setValues(rows);
-  sheet.getRange(1, 1, 1, 3).setBackground('#2d6a2d').setFontColor('#ffffff');
-  sheet.autoResizeColumns(1, 3);
+function parseTrees(o) {
+  try { return JSON.parse(o.trees||'[]'); } catch(e) { return []; }
 }
 
-function insertDataRow(sheet, headers, row) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow >= 2) {
-    const last = sheet.getRange(lastRow, 1, 1, headers.length).getValues()[0];
-    if (isTotalsRow(last, headers)) {
-      sheet.insertRowBefore(lastRow);
-      sheet.getRange(lastRow, 1, 1, headers.length).setValues([row]);
-      return;
+function renderList() {
+  const el = document.getElementById('obj-list');
+  if(!objs.length){
+    el.innerHTML='<div class="empty">Нет объектов.<br>Нажмите ➕ Новый</div>';
+    const cnt=document.getElementById('list-count');if(cnt)cnt.textContent='';
+    return;
+  }
+  const search=(document.getElementById('search-input')?.value||'').toLowerCase().trim();
+  let filtered=[...objs].reverse();
+  if(search) filtered=filtered.filter(o=>(o.client||'').toLowerCase().includes(search)||(o.address||'').toLowerCase().includes(search)||(o.phone||'').toLowerCase().includes(search));
+  const cnt=document.getElementById('list-count');
+  if(cnt) cnt.textContent=filtered.length!==objs.length?'Показано: '+filtered.length+' из '+objs.length:'Всего: '+objs.length;
+  if(!filtered.length){el.innerHTML='<div class="empty">Ничего не найдено</div>';return;}
+  el.innerHTML=filtered.map(o=>{
+    const trees=parseTrees(o);
+    const treeSummary = trees.length ? trees.map(t=>t.type+(t.count>1?' ('+t.count+' шт.)':'')).join(', ') : '—';
+    const displayCost = o.custom && o.custom > 0 ? o.custom : (o.cost || 0);
+    const meta = [o.source, o.reason].filter(Boolean).join(' · ');
+    const photos = (o.photoUrls||'').split(',').map(u=>u.trim()).filter(Boolean);
+    const badges = [];
+    if (!(o.hours > 0) && (o.cost > 0)) badges.push('<span class="warn-badge">нет часов</span>');
+    if ((o.profit || 0) <= 0 && (o.cost > 0)) badges.push('<span class="warn-badge">убыток/0</span>');
+    if (!photos.length) badges.push('<span class="warn-badge">нет фото</span>');
+    if (!trees.length) badges.push('<span class="warn-badge">нет деревьев</span>');
+    return `<div class="card">
+      <div class="card-top">
+        <h3>${o.client||'Без имени'}</h3>
+        <span class="date-badge">${formatDateRU(o.date)||'—'}</span>
+      </div>
+      ${badges.length ? `<div style="margin-bottom:6px">${badges.join('')}</div>` : ''}
+      <p>📞 ${o.phone||'—'} | 📍 ${o.address||'—'}</p>
+      ${meta?`<p>${meta}</p>`:''}
+      <p>🌳 ${treeSummary}</p>
+      <p>⏱ ${o.hours||0} ч${o.pricing?' | '+o.pricing:''}</p>
+      ${o.comment?'<p>💬 '+o.comment+'</p>':''}
+      ${photos.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">${photos.map(url => `<a href="${url}" target="_blank"><img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;"></a>`).join('')}</div>` : ''}
+      <div class="cost">💰 ${Number(displayCost).toLocaleString('ru-RU')} ₽</div>
+      <p style="font-size:13px">Прибыль: <b>${Number(o.profit||0).toLocaleString('ru-RU')} ₽</b> (${o.profitPercent||0}%) | ${Number(o.profitPerHour||0).toLocaleString('ru-RU')} ₽/ч</p>
+      <div class="card-actions">
+        <button class="btn-edit" data-id="${o.id}" onclick="editObj(this.dataset.id)">✏️ Редактировать</button>
+        <button class="btn-del" data-id="${o.id}" onclick="deleteObj(this.dataset.id)">🗑 Удалить</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function editObj(id) {
+  const o = objs.find(x=>String(x.id)===String(id));
+  if(!o) { alert('Объект не найден. Обновите список.'); return; }
+  document.getElementById('edit-id').value=o.id;
+  document.getElementById('f-client').value=o.client||'';
+  document.getElementById('f-phone').value=o.phone||'';
+  document.getElementById('f-address').value=o.address||'';
+  document.getElementById('f-cost').value=o.cost||'';
+  document.getElementById('f-hours').value=o.hours||'';
+  document.getElementById('f-nizovoy').value=o.nizovoy||'';
+  document.getElementById('f-expenses').value=o.expenses||'';
+  document.getElementById('f-lift').value=o.lift||'';
+  document.getElementById('f-comment').value=o.comment||'';
+  try{ formTrees = JSON.parse(o.trees||'[]'); } catch(e){ formTrees=[]; }
+  if (!Array.isArray(formTrees)) formTrees = [];
+  formTrees.forEach((t,i)=>{ if(!t.id) t.id = Date.now()+i; });
+  renderFormTrees();
+  setSelect('f-review',o.review); setSelect('f-avito',o.avito); setSelect('f-tg',o.tg); setSelect('f-pricing',o.pricing); setSelect('f-source',o.source); setSelect('f-reason',o.reason);
+  selectedFiles = [];
+  existingPhotoUrls = (o.photoUrls||'').split(',').map(u=>u.trim()).filter(Boolean);
+  renderPhotoPreview();
+  setEditMode(true, o.client);
+  switchTab('add');
+}
+
+function setSelect(id,val){const el=document.getElementById(id);if(!el||!val)return;for(let i=0;i<el.options.length;i++){if(el.options[i].text===val||el.options[i].value===val){el.selectedIndex=i;break;}}}
+
+function deleteObj(id){
+  const o = objs.find(x=>String(x.id)===String(id));
+  if(!confirm('Удалить объект'+(o && o.client ? ' «'+o.client+'»' : '')+'?')) return;
+  objs=objs.filter(x=>String(x.id)!==String(id));
+  save();
+  renderList();
+  fetch(SHEET_URL,{method:'POST',body:JSON.stringify({
+    action:'delete',
+    id:String(id),
+    date: o ? o.date : '',
+    client: o ? o.client : '',
+    address: o ? o.address : ''
+  })}).catch(e=>console.warn('Ошибка удаления из таблицы:',e));
+}
+
+function parseObjDate(o) {
+  const s = formatDateRU(o.date);
+  const m = String(s||'').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (!m) return null;
+  return new Date(+m[3], +m[2]-1, +m[1]);
+}
+
+function filterByPeriod(list, period) {
+  if (!period || period === 'all') return list;
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const day = now.getDay(); // 0 Sun
+  const startOfWeek = new Date(now);
+  startOfWeek.setHours(0,0,0,0);
+  startOfWeek.setDate(now.getDate() - ((day + 6) % 7)); // Monday start
+
+  return list.filter(o => {
+    const d = parseObjDate(o);
+    if (!d) return false;
+    if (period === 'month') return d.getFullYear() === y && d.getMonth() === m;
+    if (period === 'prev-month') {
+      const pm = m === 0 ? 11 : m - 1;
+      const py = m === 0 ? y - 1 : y;
+      return d.getFullYear() === py && d.getMonth() === pm;
     }
-  }
-  sheet.appendRow(row);
+    if (period === 'week') return d >= startOfWeek && d <= now;
+    return true;
+  });
 }
 
-// ===== ЧТЕНИЕ =====
-function doGet(e) {
-  const sheet = getObjSheet();
-  const headers = getHeaders(sheet);
-  ensureRowIds(sheet, headers);
-  refreshTotals(sheet);
+function updateStats() {
+  const period = document.getElementById('stats-period')?.value || 'all';
+  const periodLabels = {all:'', month:'· этот месяц', 'prev-month':'· прошлый месяц', week:'· эта неделя'};
+  const labelEl = document.getElementById('s-period-label');
+  if (labelEl) labelEl.textContent = periodLabels[period] || '';
 
-  if (sheet.getLastRow() <= 1) return jsonOut([]);
+  const list = filterByPeriod(objs, period);
+  const n = list.length;
+  const sum = list.reduce((a,o)=>a+(o.cost||0), 0);
+  const profit = list.reduce((a,o)=>a+(o.profit||0), 0);
+  const hrs = list.reduce((a,o)=>a+(o.hours||0),0);
+  const niz = list.reduce((a,o)=>a+(o.nizovoy||0),0);
+  const liftT = list.reduce((a,o)=>a+(o.lift||0),0);
+  const exp = list.reduce((a,o)=>a+(o.expenses||0),0);
 
-  const data = sheet.getDataRange().getValues();
-  const hdrs = data[0].map(h => String(h || '').trim());
-  const rows = data.slice(1)
-    .filter(row => !isTotalsRow(row, hdrs))
-    .map(row => {
-      const obj = {};
-      hdrs.forEach((h, i) => {
-        let v = row[i];
-        if (h === 'Дата') v = formatSheetDate(v);
-        obj[h] = v;
-      });
-      return obj;
-    });
-  return jsonOut(rows);
-}
+  // ₽/ч только по объектам, где часы заполнены — чтобы пустые не обнуляли картину
+  const withHours = list.filter(o => (o.hours||0) > 0);
+  const profitWithHours = withHours.reduce((a,o)=>a+(o.profit||0), 0);
+  const hrsOnly = withHours.reduce((a,o)=>a+(o.hours||0), 0);
 
-// ===== POST =====
-function doPost(e) {
-  try {
-    if (!e || !e.postData) return jsonOut({ ok: false, error: 'Нет данных' });
-    const data = JSON.parse(e.postData.contents);
-    const action = data.action || 'save';
+  document.getElementById('s-count').textContent = n;
+  document.getElementById('s-sum').textContent = sum.toLocaleString('ru-RU')+' ₽';
+  document.getElementById('s-profit').textContent = profit.toLocaleString('ru-RU')+' ₽';
+  document.getElementById('s-margin').textContent = (sum>0?Math.round((profit/sum)*100):0)+'%';
+  document.getElementById('s-profitHour').textContent = (hrsOnly>0?Math.round(profitWithHours/hrsOnly):0).toLocaleString('ru-RU')+' ₽/ч';
+  document.getElementById('s-avg').textContent = (n?Math.round(sum/n):0).toLocaleString('ru-RU')+' ₽';
+  document.getElementById('s-hours').textContent = hrs+' ч';
+  if(document.getElementById('s-nizovoy')) document.getElementById('s-nizovoy').textContent = niz.toLocaleString('ru-RU')+' ₽';
+  if(document.getElementById('s-liftTotal')) document.getElementById('s-liftTotal').textContent = liftT.toLocaleString('ru-RU')+' ₽';
+  if(document.getElementById('s-exp')) document.getElementById('s-exp').textContent = exp.toLocaleString('ru-RU')+' ₽';
 
-    if (action === 'save' || action === 'update') return saveOrUpdate(data);
-    if (action === 'delete') return deleteObj(data);
-    if (action === 'saveCalc') return saveCalc(data);
-    if (action === 'uploadPhotos') return uploadPhotos(data);
+  document.getElementById('s-reviews').textContent = list.filter(o=>o.review==='Да').length;
+  document.getElementById('s-avito').textContent = list.filter(o=>o.avito==='Да').length;
+  document.getElementById('s-tg').textContent = list.filter(o=>o.tg==='Да').length;
 
-    return jsonOut({ ok: true });
-  } catch (err) {
-    return jsonOut({ ok: false, error: String(err) });
-  }
-}
-
-function saveOrUpdate(data) {
-  const sheet = getObjSheet();
-  const headers = getHeaders(sheet);
-  if (!data.id) data.id = newId();
-
-  let rowIndex = findRowIndex(sheet, headers, data);
-  const isUpdate = rowIndex > 1;
-
-  let keepDate = '';
-  if (isUpdate) {
-    const iDate = headerIndex(headers, 'Дата');
-    if (iDate >= 0) keepDate = formatSheetDate(sheet.getRange(rowIndex, iDate + 1).getValue());
+  // Качество данных
+  const noHours = list.filter(o => !(o.hours > 0) && (o.cost > 0)).length;
+  const badProfit = list.filter(o => (o.profit || 0) <= 0 && (o.cost > 0)).length;
+  const noPhoto = list.filter(o => !(o.photoUrls||'').trim()).length;
+  const noTrees = list.filter(o => parseTrees(o).length === 0).length;
+  const qEl = document.getElementById('s-quality');
+  const issues = [];
+  if (noHours) issues.push(`<div class="quality-row"><span>Без часов (портят ₽/ч)</span><span class="quality-val">${noHours}</span></div>`);
+  if (badProfit) issues.push(`<div class="quality-row"><span>Нулевая / отриц. прибыль</span><span class="quality-val">${badProfit}</span></div>`);
+  if (noPhoto) issues.push(`<div class="quality-row"><span>Без фото</span><span class="quality-val">${noPhoto}</span></div>`);
+  if (noTrees) issues.push(`<div class="quality-row"><span>Без деревьев</span><span class="quality-val">${noTrees}</span></div>`);
+  if (qEl) {
+    qEl.innerHTML = issues.length
+      ? issues.join('')
+      : '<div class="quality-ok">✓ По выбранному периоду замечаний нет</div>';
   }
 
-  const row = buildRowFromData(headers, data, isUpdate ? (keepDate || data.date) : (data.date || ''));
-
-  if (isUpdate) {
-    sheet.getRange(rowIndex, 1, 1, headers.length).setValues([row]);
-  } else {
-    insertDataRow(sheet, headers, row);
-  }
-
-  refreshTotals(sheet);
-  return jsonOut({ ok: true, action: isUpdate ? 'updated' : 'created', id: data.id });
+  const trees={}, sources={};
+  list.forEach(o=>{
+    parseTrees(o).forEach(t=>{trees[t.type]=(trees[t.type]||0)+(t.count||1);});
+    if(o.source) sources[o.source]=(sources[o.source]||0)+1;
+  });
+  document.getElementById('s-trees').innerHTML = Object.entries(trees).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`<div class="stat-row"><span>${t}</span><span class="stat-val">${c}</span></div>`).join('')||'<div style="color:#aaa">Нет данных</div>';
+  document.getElementById('s-sources').innerHTML = Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([s,c])=>`<div class="stat-row"><span>${s}</span><span class="stat-val">${c}</span></div>`).join('')||'<div style="color:#aaa">Нет данных</div>';
 }
 
-function deleteObj(data) {
-  const sheet = getObjSheet();
-  const headers = getHeaders(sheet);
-  const rowIndex = findRowIndex(sheet, headers, data);
-  if (rowIndex > 1) sheet.deleteRow(rowIndex);
-  refreshTotals(sheet);
-  return jsonOut({ ok: true });
+function exportCSV() {
+  if(!objs.length){alert('Нет объектов');return;}
+  const rows=[['Дата','Клиент','Телефон','Адрес','Стоимость','Прибыль','Часы','Фото']];
+  objs.forEach(o=>rows.push([formatDateRU(o.date),o.client,o.phone,o.address,o.cost,o.profit,o.hours,o.photoUrls||'']));
+  const csv=rows.map(r=>r.join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\ufeff'+encodeURIComponent(csv);
+  a.download='arbozavr.csv';
+  a.click();
 }
 
-function uploadPhotos(data) {
-  try {
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    const urls = [];
-    for (const fileData of (data.files || [])) {
-      const blob = Utilities.newBlob(
-        Utilities.base64Decode(fileData.base64),
-        fileData.mimeType,
-        fileData.name
-      );
-      const file = folder.createFile(blob);
-      urls.push('https://drive.google.com/uc?export=view&id=' + file.getId());
-    }
-    return jsonOut({ urls });
-  } catch (e) {
-    return jsonOut({ error: e.toString() });
-  }
-}
-
-function saveCalc(data) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Расчёт');
-  if (!sheet) {
-    sheet = ss.insertSheet('Расчёт');
-    sheet.appendRow([
-      'Дата', 'Клиент', 'Адрес', 'Деревьев', 'Сумма по деревьям',
-      'Скидка %', 'Скидка ₽', 'Низовой', 'Вышка', 'Амортизация',
-      'Бензин', 'Утилизация', 'Прочие', 'Доп.расходы',
-      'ИТОГО клиенту', 'Чистая прибыль', 'Рентабельность', 'JSON деревьев'
-    ]);
-    sheet.getRange(1, 1, 1, 18).setFontWeight('bold');
-  }
-
-  sheet.appendRow([
-    data.date || new Date().toLocaleString('ru-RU'),
-    data.client || '',
-    data.address || '',
-    data.treeCount || 0,
-    data.treesSum || 0,
-    data.discountPercent || 0,
-    data.discountAmount || 0,
-    data.nizovoy || 0,
-    data.lift || 0,
-    data.amort || 0,
-    data.fuel || 0,
-    data.disposal || 0,
-    data.other || 0,
-    data.expenses || 0,
-    data.total || 0,
-    data.profit || 0,
-    data.margin || 0,
-    data.treesJSON || '[]'
-  ]);
-  return jsonOut({ ok: true });
-}
+window.onload=function() {
+  load();
+  loadCalcState();
+  autoSaveCalc();
+};
+</script>
+</body>
+</html>
